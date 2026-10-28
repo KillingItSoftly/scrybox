@@ -59,6 +59,18 @@ b5cca3a714888b7cbbd7c973b3df7d8e75f262eab8269dd3ce27494992557e98
 
 The archive contains RED/GREEN/final logs, failed-test traces, audit comparisons, engine-version output and synthetic screenshots. Final screenshots are under `scrybox-fold-evidence/final-browser/`, including `simulated-book.png`, `simulated-laptop.png`, `simulated-keyboard.png`, `simulated-book-safe-areas-large-text.png`, collection/inspector views and deck/list/settings views. Final WebKit book/keyboard screenshots and earlier laptop/narrow-inspector screenshots were visually inspected; browser tests also assert geometry and state, not merely screenshots. The production `dist` was checked for test-harness paths and synthetic fixture identifiers: none were present.
 
+## Parent verification and review follow-up
+
+After the initial implementation, the parent independently reran the frontend suite (244 passed), browser suite (18 passed), lint, and backend E2E (14 suites / 79 cases passed). A read-only independent review then reproduced a blocker: native zoomed panning could trigger the existing swipe-to-close recognizer and lose unsaved edits.
+
+The gesture fix bypasses swipe navigation while zoomed, cancels an active swipe when a second finger/zoom begins, and treats `touchcancel` as cancellation rather than committing navigation. Native page zoom remains enabled. A new `swipe-zoom.spec.js` covers these paths and preserves normal unzoomed swipe-to-close.
+
+- RED: all five Chromium gesture tests failed before the fix (including trusted CDP touch input at native page scale 2); the initial WebKit attempt hit its unsupported Touch constructor, which was corrected to explicitly synthetic event reports. Constructor errors are not counted as behavioral RED evidence.
+- Final browser run: **27 passed / 1 expected skip**. The CDP-only native-scale test is skipped in WebKit; four synthetic gesture tests pass in each engine.
+- Final frontend unit run: **244 passed**, no failures; locale validation passed. Lint and production build exit 0. Backend/shared code remains unchanged.
+- Parent inspected a real iOS 27.1 iPhone Duo Simulator screenshot of the synthetic inspector in Safari on the inner landscape display. This is a rendering smoke check, not a full application or fold-handoff acceptance pass. Device Hub was not accessible through the computer-control capture backend, so further interaction and Home Screen installation were not established. The loopback fixture server was stopped.
+- Parent follow-up logs: `scrybox-zoom-red.log`, `scrybox-final-browser.log`, `scrybox-final-unit.log`, `scrybox-final-build.log`, and `scrybox-parent-backend-e2e.log` under the active Hermes profile's scratch directory. Follow-up evidence is also archived separately in ignored `logs/adaptive-foldable-pwa-review-evidence.tar.gz`.
+
 ## Acceptance limits
 
 - All posture/segment and keyboard reports are **explicit mocks** exercising real app code in actual browser engines. They do not emulate hardware or an actual software keyboard.
