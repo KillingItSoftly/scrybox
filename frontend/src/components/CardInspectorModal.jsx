@@ -14,6 +14,8 @@ import PriceHistoryChart from './PriceHistoryChart';
 import { useBackGuard } from '../utils/useBackGuard';
 import { useSwipeBack } from '../utils/useSwipeBack';
 import { useT } from '../utils/i18n';
+import { readViewportLayout, readVisualBounds, observeViewportLayout, segmentStyles } from '../utils/viewportLayout';
+import './card-inspector-viewport.css';
 
 // MTG color identity pip colors (WUBRG), approximating the printed mana colors.
 
@@ -25,6 +27,12 @@ const SWIPE_OPTS = { el: () => document.querySelector('.modal-overlay.ci-overlay
 
 function CardInspectorModal({ card, onClose, onUpdate, onDeleted, showToast, startInEdit = false, readOnly = false, children = null }) {
   const { t } = useT();
+  const [viewportLayout, setViewportLayout] = useState(() => readViewportLayout());
+  const [visualBounds, setVisualBounds] = useState(() => readVisualBounds());
+  useEffect(() => observeViewportLayout(window, (layout, bounds) => {
+    setViewportLayout(layout);
+    setVisualBounds(bounds);
+  }), []);
   const [mode, setMode] = useState('view');
   const [q, setQ] = useState(1);
   const [condition, setCondition] = useState('Near Mint');
@@ -253,9 +261,11 @@ function CardInspectorModal({ card, onClose, onUpdate, onDeleted, showToast, sta
   const displayPrice = resolveCardPrice(card, printing);
 
   return (
-    <div className="modal-overlay ci-overlay" style={{
+    <div className="modal-overlay ci-overlay" data-segments={viewportLayout?.axis} style={{
+      ...segmentStyles(viewportLayout),
       position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
+      top: 0, left: 0, right: 0, bottom: 'auto',
+      ...visualBounds,
       backgroundColor: 'rgba(0,0,0,0.75)',
       backdropFilter: 'blur(8px)',
       display: 'flex',

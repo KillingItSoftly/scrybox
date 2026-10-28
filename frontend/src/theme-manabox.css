@@ -209,7 +209,7 @@
 }
 
 /* Phone: ManaBox bottom tab bar */
-@media (max-width: 768px), (pointer: coarse) and (max-width: 940px) {
+@media (max-width: 768px), (pointer: coarse) and (max-width: 1023px) {
   :root[data-theme="manabox"] .nav-tabs {
     background: #1a1d22;
     border-top: 1px solid var(--mb-line);
@@ -250,15 +250,20 @@
     display: grid;
     grid-template-columns: 232px minmax(0, 1fr);
     column-gap: 0;
-    padding: 0;
+    padding:
+      max(env(safe-area-inset-top, 0px), var(--sat, 0px))
+      max(env(safe-area-inset-right, 0px), var(--sar, 0px))
+      max(env(safe-area-inset-bottom, 0px), var(--sab, 0px))
+      max(env(safe-area-inset-left, 0px), var(--sal, 0px));
     align-items: start;
   }
   :root[data-theme="manabox"] .app-header {
     grid-column: 1;
     grid-row: 1 / span 2;
     position: sticky;
-    top: 0;
+    top: max(env(safe-area-inset-top, 0px), var(--sat, 0px));
     height: 100vh;
+    height: calc(100dvh - max(env(safe-area-inset-top, 0px), var(--sat, 0px)) - max(env(safe-area-inset-bottom, 0px), var(--sab, 0px)));
     margin: 0;
     padding: 18px 12px;
     flex-direction: column;

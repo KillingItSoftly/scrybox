@@ -1,6 +1,6 @@
-// Mirrors the CSS phone-layout media query in index.css: narrow screens, plus
-// touch screens up to 940px (iPhone Duo unfolded is 626 x 890 / 890 x 626).
-export const PHONE_QUERY = '(max-width: 768px), (pointer: coarse) and (max-width: 940px)';
+// Mirrors index.css: compact navigation until there is room for the desktop
+// sidebar on touch screens. This is a content breakpoint, NOT posture detection.
+export const PHONE_QUERY = '(max-width: 768px), (pointer: coarse) and (max-width: 1023px)';
 
 export function isPhoneLayout(win = typeof window !== 'undefined' ? window : null) {
   return !!win?.matchMedia?.(PHONE_QUERY).matches;
