@@ -1,0 +1,85 @@
+/* The normal sheet is the default, including when Safari's flags are off. */
+.ci-overlay {
+  --ci-top: max(1rem, env(safe-area-inset-top, 0px), var(--sat, 0px));
+  --ci-right: max(1rem, env(safe-area-inset-right, 0px), var(--sar, 0px));
+  --ci-bottom: max(1rem, env(safe-area-inset-bottom, 0px), var(--sab, 0px));
+  --ci-left: max(1rem, env(safe-area-inset-left, 0px), var(--sal, 0px));
+  height: 100vh;
+  height: 100dvh;
+}
+.ci-overlay:not([data-segments]) .card-inspector {
+  width: 100% !important;
+  max-width: 840px !important;
+  max-height: 100% !important;
+  min-height: 0;
+}
+.ci-overlay .ci-edit-form .form-group,
+.ci-overlay .ci-edit-form input,
+.ci-overlay .ci-edit-form select { min-width: 0; }
+.ci-overlay .ci-edit-form input,
+.ci-overlay .ci-edit-form select,
+.ci-overlay .ci-edit-form .ci-foil-chip {
+  min-height: 44px;
+  font-size: max(1rem, 16px) !important;
+}
+/* Native WebKit selects need an explicit height, not just min-height. */
+.ci-overlay .ci-edit-form select { height: 44px; }
+.ci-overlay .card-inspector .modal-close {
+  width: 44px;
+  height: 44px;
+}
+@media (min-width: 640px) {
+  .ci-overlay:not([data-segments]) .card-inspector {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1fr);
+    padding: 1.25rem !important;
+    gap: 1.25rem !important;
+  }
+  .ci-overlay:not([data-segments]) .ci-info-col { padding-top: 2.75rem; }
+}
+
+/* Only the inspector uses segments; the app underneath keeps its full layout.
+   Custom properties are exact CSS-pixel DOMRects from window.viewport.segments.
+   Higher specificity overrides the existing phone sheet, regardless of load order. */
+.ci-overlay.modal-overlay[data-segments] .card-inspector {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100%;
+  max-height: none !important;
+  padding: 0 !important;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  /* Unlike hidden, clip cannot retain the stacked sheet's scroll offset. */
+  overflow: clip !important;
+}
+.ci-overlay[data-segments] .card-inspector > .ci-image-col,
+.ci-overlay[data-segments] .card-inspector > .ci-info-col {
+  position: absolute;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--ci-top) var(--ci-right) var(--ci-bottom) var(--ci-left);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+.ci-overlay[data-segments] .card-inspector > .ci-image-col {
+  left: var(--segment-0-left);
+  top: var(--segment-0-top);
+  width: var(--segment-0-width) !important;
+  height: var(--segment-0-height);
+}
+.ci-overlay[data-segments] .card-inspector > .ci-info-col {
+  left: var(--segment-1-left);
+  top: var(--segment-1-top);
+  width: var(--segment-1-width) !important;
+  height: var(--segment-1-height);
+  padding-top: calc(var(--ci-top) + 3.5rem);
+}
+.ci-overlay[data-segments] .card-inspector > .modal-close {
+  top: calc(var(--segment-1-top) + var(--ci-top)) !important;
+  right: calc(100% - var(--segment-1-left) - var(--segment-1-width) + var(--ci-right)) !important;
+}

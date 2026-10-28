@@ -85,8 +85,13 @@ export function useSwipeBack(enabled, onBack, opts = null) {
       setTimeout(go, ms + 60);
     };
 
+    // Zoomed one-finger movement belongs to native panning, not navigation.
+    // A second finger or touchcancel must undo a drag, never commit it.
+    const zoomed = () => Math.abs((window.visualViewport?.scale ?? 1) - 1) > 0.01;
+    const cancel = () => { if (s) clear(s.el); s = null; };
+    const viewportChanged = () => { if (zoomed()) cancel(); };
     const start = (e) => {
-      if (busy || e.touches.length !== 1) { s = null; return; }
+      if (busy || e.touches.length !== 1 || zoomed()) { cancel(); return; }
       const t = e.touches[0];
       if (skipEdge && t.clientX < EDGE) { s = null; return; }
       const root = getEl ? getEl() : null;
@@ -96,6 +101,7 @@ export function useSwipeBack(enabled, onBack, opts = null) {
     };
 
     const move = (e) => {
+      if (e.touches.length !== 1 || zoomed()) { cancel(); return; }
       if (!s) return;
       const t = e.touches[0];
       const dx = t.clientX - s.x;
@@ -121,7 +127,8 @@ export function useSwipeBack(enabled, onBack, opts = null) {
       if (!getEl) setShade(s.dx / window.innerWidth, s.el);
     };
 
-    const end = () => {
+    const end = (e) => {
+      if (zoomed() || e.touches.length > 0) { cancel(); return; }
       const st = s;
       s = null;
       if (!st || st.mode !== 'h' || !st.el) return;
@@ -167,15 +174,17 @@ export function useSwipeBack(enabled, onBack, opts = null) {
     document.addEventListener('touchstart', start, { passive: true });
     document.addEventListener('touchmove', move, { passive: false });
     document.addEventListener('touchend', end);
-    document.addEventListener('touchcancel', end);
+    document.addEventListener('touchcancel', cancel);
+    window.visualViewport?.addEventListener('resize', viewportChanged);
     return () => {
       document.removeEventListener('touchstart', start);
       document.removeEventListener('touchmove', move);
       document.removeEventListener('touchend', end);
-      document.removeEventListener('touchcancel', end);
+      document.removeEventListener('touchcancel', cancel);
+      window.visualViewport?.removeEventListener('resize', viewportChanged);
       // onBack flips `enabled` off mid-animation: the queued ease-in still
       // runs and cleans up after itself, so only reset when idle.
-      if (!busy) clear(null);
+      if (!busy) { cancel(); clear(null); }
     };
   }, [enabled, getEl]);
 }
